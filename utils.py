@@ -15,6 +15,10 @@ def extended_euclid(a, b):
     return u
 
 
+def byte_length(i):
+    return (i.bit_length() + 7) // 8
+
+
 def read_key(file):
     return importKey(open(file, "r").read()).key
 

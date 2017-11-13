@@ -36,7 +36,6 @@ class RSA:
         d = RSA._get_d(e, phi)
         if (d * e) % phi != 1 or e >= phi:
             raise ValueError("Error while generating, d={}, e={}, phi={}".format(d, e, phi))
-        print((d * e) % phi)
         return (e, n), (d, n)
 
     def encrypt(self, text):

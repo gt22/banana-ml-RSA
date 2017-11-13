@@ -1,19 +1,21 @@
 import random
 import copy
+from utils import byte_length
+
 
 def pack(data, n):
     if isinstance(data, str):
         data = [ord(char) for char in data]
     blocks = []
     data = copy.copy(data)
-    mod_size = (n.bit_length() + 7) // 8
+    mod_size = byte_length(n)
     while len(data) > 0:
         block_parts = _break_block_to_parts(data, mod_size)
         ps = _create_padding_string(len(block_parts), mod_size)
         block_parts = [0, 2, *ps, 0] + block_parts  # 00 || BT (02) || PS || 00 || D (RFC 2313 8.1)
         block = 0
         for j in range(0, mod_size):
-            block += block_parts.pop(0) << (8 * j)
+            block |= block_parts.pop(0) << (8 * j)
         blocks.append(block)
     return blocks
 
@@ -23,7 +25,7 @@ def _break_block_to_parts(data, mod_size):
     while len(data) > 0 and len(block_parts) < mod_size - 3:
         i = data[0]  # Can't do pop now, because it's possible that we must left this char for next block
         if i.bit_length() > 7:  # Non-Ascii, should be separated in multiple parts
-            if (i.bit_length() + 7) // 8 + len(block_parts) >= mod_size - 3:
+            if byte_length(i) + len(block_parts) >= mod_size - 3:
                 break
             while i.bit_length() > 7:
                 # Take last 8 bits, set 8th bit, indicating it's not last part
@@ -87,7 +89,7 @@ def _extract_data(block):
         i = 0
 
         while d & 0x80 > 0:  # While 8th bit is set, which means that this num is just part of the data
-            num += (d & 0x7F) << (7 * i)  # Unset 8th bit, shift to position and add to number
+            num |= (d & 0x7F) << (7 * i)  # Unset 8th bit, shift to position and add to number
             i += 1
             block >>= 8
             d = block % 256

@@ -92,7 +92,7 @@ def _extract_data(block):
             block >>= 8
             d = block % 256
         # Can use | instead of + because num length is 7i, and d has 7i unset bits to the right, because of the shift
-        num += d << (7 * i)
+        num |= d << (7 * i)
         data.append(num)
         block >>= 8
     return data
